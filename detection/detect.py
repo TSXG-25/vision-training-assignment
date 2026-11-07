@@ -285,27 +285,44 @@ def main():
     )
 
     parser.add_argument(
+    "--model",
+    type=Path,
+    required=True,
+    help="Path to ONNX model"
+    )
+
+    parser.add_argument(
         "--video",
         type=Path,
         required=True,
-        help="Input video path"
+        help="Path to input video"
+    )
+
+    parser.add_argument(
+        "--calibration",
+        type=Path,
+        required=True,
+        help="Path to camera calibration YAML"
     )
 
     parser.add_argument(
         "--output",
         type=Path,
         required=True,
-        help="Output JSONL path"
-    )
+        help="Path to output JSONL"
+)
 
     args = parser.parse_args()
+
+    MODEL_PATH = args.model
     VIDEO_PATH = args.video
+    CALIBRATION_PATH = args.calibration
     OUTPUT_PATH = args.output
-    MODEL_PATH = Path("assets/0526.onnx")
 
     # 检查资源
     assert MODEL_PATH.is_file(), f"Missing model: {MODEL_PATH}"
     assert VIDEO_PATH.is_file(), f"Missing video: {VIDEO_PATH}"
+    assert CALIBRATION_PATH.is_file(), f"Missing calibration: {CALIBRATION_PATH}"
 
     # 加载模型
     core = ov.Core()
@@ -316,7 +333,7 @@ def main():
     #print("Model output:", compiled_model.output(0))
 
     #读取camera畸变
-    with open("assets/calibration.yaml", "r") as f:
+    with CALIBRATION_PATH.open("r", encoding="utf-8") as f:
         calibration = yaml.safe_load(f)
     camera_matrix = np.array(
         calibration["camera_matrix"],
